@@ -72,8 +72,7 @@ Loop
 
 Count = 0
 SearchDirectory Path, True
-MsgBox Count & " 件 置換しました。" & vbCrLf & vbCrLf & Description, vbInformation Or vbOkOnly, ScriptName
-Quit
+ShowMessageAndQuit
 
 Function Quit()
     Set FileSystem = Nothing
@@ -91,44 +90,100 @@ End Function
 
 Function SearchDirectory(ByVal folderspec, ByVal Recursive)
     Dim Folder
+    Dim MsgBoxResult
+    Dim Ignore
     On Error Resume Next
-    Set Folder = FileSystem.GetFolder(folderspec)
 
-    If Err.Number <> 0 Then
-        MsgBox "GetFolder 失敗"
-        On Error GoTo 0
-        Exit Function
-    End If
+    Do
+        Set Folder = FileSystem.GetFolder(folderspec)
+
+        If Err.Number = 0 Then
+            Exit Do
+        End If
+
+        MsgBoxResult = MsgBox(Err.Description & vbCrLf & vbCrLf & folderspec, vbAbortRetryIgnore Or vbCritical, ScriptName)
+
+        Select Case MsgBoxResult
+            Case vbAbort
+                ShowMessageAndQuit
+            Case vbIgnore
+                On Error GoTo 0
+                Exit Function
+        End Select
+    Loop While True
 
     Dim Files
-    Set Files = Folder.Files
+    Ignore = False
 
-    If Err.Number = 0 Then
-        On Error GoTo 0
+    Do
+        Set Files = Folder.Files
+
+        If Err.Number = 0 Then
+            Exit Do
+        End If
+
+        MsgBoxResult = MsgBox(Err.Description & vbCrLf & vbCrLf & Folder.Path, vbAbortRetryIgnore Or vbCritical, ScriptName)
+
+        Select Case MsgBoxResult
+            Case vbAbort
+                ShowMessageAndQuit
+            Case vbIgnore
+                Ignore = True
+                Exit Do
+        End Select
+    Loop While True
+
+    If Not Ignore Then
         Dim File
 
         For Each File In Files
             Dim BeforeFileName
             Dim AfterFileName
-            On Error Resume Next
-            BeforeFileName = File.Name
 
-            If Err.Number = 0 Then
+            Do
+                BeforeFileName = File.Name
+
+                If Err.Number = 0 Then
+                    Exit Do
+                End If
+
+                MsgBoxResult = MsgBox(Err.Description & vbCrLf & vbCrLf & File.Path, vbAbortRetryIgnore Or vbCritical, ScriptName)
+
+                Select Case MsgBoxResult
+                    Case vbAbort
+                        ShowMessageAndQuit
+                    Case vbIgnore
+                        Ignore = True
+                        Exit Do
+                End Select
+            Loop While True
+
+            If Not Ignore Then
                 AfterFileName = Replace(BeforeFileName, Before, After)
 
                 If AfterFileName <> BeforeFileName Then
-                    File.Name = AfterFileName
+                    Do
+                        File.Name = AfterFileName
 
-                    If Err.Number = 0 Then
-                        Count = Count + 1
-                    End If
+                        If Err.Number = 0 Then
+                            Count = Count + 1
+                            Exit Do
+                        End If
+
+                        MsgBoxResult = MsgBox(Err.Description & vbCrLf & vbCrLf & File.Path, vbAbortRetryIgnore Or vbCritical, ScriptName)
+
+                        Select Case MsgBoxResult
+                            Case vbAbort
+                                ShowMessageAndQuit
+                            Case vbIgnore
+                                Exit Do
+                        End Select
+                    Loop While True
                 End If
             End If
 
             On Error GoTo 0
         Next
-    Else
-        MsgBox Err.Description
     End If
 
     If Recursive Then
@@ -143,4 +198,9 @@ Function SearchDirectory(ByVal folderspec, ByVal Recursive)
             Next
         End If
     End If
+End Function
+
+Function ShowMessageAndQuit()
+    MsgBox Count & " 件 置換しました。" & vbCrLf & vbCrLf & Description, vbInformation Or vbOkOnly, ScriptName
+    Quit
 End Function
