@@ -9,6 +9,7 @@ Dim Before
 Dim Arguments
 Dim PathNeeded
 Dim Path
+Dim Recursive
 Dim Description
 Dim ScriptName
 Dim After
@@ -18,12 +19,20 @@ Dim Count
 BeforeNeeded = True
 Before = ""
 Set Arguments = WScript.Arguments
+Recursive = False
 
 If Arguments.Count < 1 Then
     PathNeeded = True
 Else
     Path = Arguments(0)
     PathNeeded = False
+
+    If Arguments.Count > 1 Then
+        Select Case Arguments(1)
+            Case "/r", "/R"
+                Recursive = True
+        End Select
+    End If
 End If
 
 Set FileSystem = CreateObject("Scripting.FileSystemObject")
@@ -71,7 +80,7 @@ Do While BeforeNeeded
 Loop
 
 Count = 0
-SearchDirectory Path, True
+SearchDirectory Path
 ShowMessageAndQuit
 
 Function Quit()
@@ -88,7 +97,7 @@ Function QuitWhenError()
     Quit
 End Function
 
-Function SearchDirectory(ByVal folderspec, ByVal Recursive)
+Function SearchDirectory(ByVal folderspec)
     Dim Folder
     Dim MsgBoxResult
     Dim Ignore
@@ -197,7 +206,7 @@ Function SearchDirectory(ByVal folderspec, ByVal Recursive)
             Dim SubFolder
 
             For Each SubFolder In SubFolders
-                SearchDirectory SubFolder, True
+                SearchDirectory SubFolder
             Next
         End If
     End If
