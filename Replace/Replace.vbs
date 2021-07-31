@@ -88,15 +88,6 @@ Function Quit()
     WScript.Quit
 End Function
 
-Function QuitWhenError()
-    If Err.Number = 0 Then
-        Exit Function
-    End If
-
-    MsgBox Err.Description, vbInformation Or vbOkOnly, ScriptName
-    Quit
-End Function
-
 Function SearchDirectory(ByVal folderspec)
     Dim Folder
     Dim MsgBoxResult
