@@ -90,117 +90,94 @@ End Function
 
 Function SearchDirectory(ByVal folderspec)
     Dim Folder
-    Dim MsgBoxResult
-    Dim Ignore
-    On Error Resume Next
+    Dim ErrNumber
+    Dim ErrDescription
 
     Do
+        On Error Resume Next
         Set Folder = FileSystem.GetFolder(folderspec)
+        ErrNumber = Err.Number
+        ErrDescription = Err.Description
+        On Error GoTo 0
+        Err.Clear
 
-        If Err.Number = 0 Then
+        If ErrNumber = 0 Then
             Exit Do
         End If
 
-        MsgBoxResult = MsgBox(Err.Description & vbCrLf & vbCrLf & folderspec, vbAbortRetryIgnore Or vbCritical, ScriptName)
-
-        Select Case MsgBoxResult
-            Case vbAbort
-                ShowMessageAndQuit
-            Case vbIgnore
-                On Error GoTo 0
-                Exit Function
-        End Select
+        ' 不正なパスを指定した場合
+        SearchDirectory = MsgBox(ErrDescription & vbCrLf & vbCrLf & folderspec, vbAbortRetryIgnore Or vbCritical, ScriptName)
+        Exit Function
     Loop While True
 
     Dim Files
-    Ignore = False
+    Set Files = Folder.Files
+    Dim FileCount
+    On Error Resume Next
+    ' ファイルにアクセスできるかチェックする
+    ' (ディレクトリに読み取り権限がない場合、ここでエラーになる)
+    FileCount = Files.Count
+    ErrNumber = Err.Number
+    ErrDescription = Err.Description
+    Err.Clear
 
-    Do
-        Set Files = Folder.Files
-
-        If Err.Number = 0 Then
-            Exit Do
-        End If
-
-        MsgBoxResult = MsgBox(Err.Description & vbCrLf & vbCrLf & Folder.Path, vbAbortRetryIgnore Or vbCritical, ScriptName)
-
-        Select Case MsgBoxResult
-            Case vbAbort
-                ShowMessageAndQuit
-            Case vbIgnore
-                Ignore = True
-                Exit Do
-        End Select
-    Loop While True
-
-    If Not Ignore Then
+    If ErrNumber <> 0 Then
+        SearchDirectory = MsgBox(ErrDescription & vbCrLf & vbCrLf & Folder.Path, vbAbortRetryIgnore Or vbCritical, ScriptName)
+        Exit Function
+    Else
         Dim File
 
         For Each File In Files
             Dim BeforeFileName
+            ' MAX_PATH 制限によるエラーはここでは発生しない
+            BeforeFileName = File.Name
+
             Dim AfterFileName
+            AfterFileName = Replace(BeforeFileName, Before, After)
 
-            Do
-                ' VBScript で On Error GoTo を使用することはできません。
-                ' https://docs.microsoft.com/ja-jp/office/client-developer/access/desktop-database-reference/handling-errors-in-vbscript
-                On Error Resume Next
-                BeforeFileName = File.Name
+            If AfterFileName <> BeforeFileName Then
+                Do
+                    File.Name = AfterFileName
+                    ErrNumber = Err.Number
+                    ErrDescription = Err.Description
+                    Err.Clear
 
-                If Err.Number = 0 Then
-                    Exit Do
-                End If
-
-                MsgBoxResult = MsgBox(Err.Description & vbCrLf & vbCrLf & File.Path, vbAbortRetryIgnore Or vbCritical, ScriptName)
-
-                Select Case MsgBoxResult
-                    Case vbAbort
-                        ShowMessageAndQuit
-                    Case vbIgnore
-                        Ignore = True
+                    If ErrNumber = 0 Then
+                        Count = Count + 1
                         Exit Do
-                End Select
-            Loop While True
+                    End If
 
-            If Not Ignore Then
-                AfterFileName = Replace(BeforeFileName, Before, After)
-
-                If AfterFileName <> BeforeFileName Then
-                    Do
-                        File.Name = AfterFileName
-
-                        If Err.Number = 0 Then
-                            Count = Count + 1
+                    Select Case MsgBox(ErrDescription & vbCrLf & vbCrLf & File.Path, vbAbortRetryIgnore Or vbCritical, ScriptName)
+                        Case vbAbort
+                            ShowMessageAndQuit
+                        Case vbIgnore
                             Exit Do
-                        End If
-
-                        MsgBoxResult = MsgBox(Err.Description & vbCrLf & vbCrLf & File.Path, vbAbortRetryIgnore Or vbCritical, ScriptName)
-
-                        Select Case MsgBoxResult
-                            Case vbAbort
-                                ShowMessageAndQuit
-                            Case vbIgnore
-                                Exit Do
-                        End Select
-                    Loop While True
-                End If
+                    End Select
+                Loop While True
             End If
-
-            On Error GoTo 0
         Next
     End If
+
+    On Error GoTo 0
 
     If Recursive Then
         Dim SubFolders
         Set SubFolders = Folder.SubFolders
+        Dim SubFolder
 
-        If Err.Number = 0 Then
-            Dim SubFolder
-
-            For Each SubFolder In SubFolders
-                SearchDirectory SubFolder
-            Next
-        End If
+        For Each SubFolder In SubFolders
+            Do
+                Select Case SearchDirectory(SubFolder)
+                    Case vbAbort
+                        ShowMessageAndQuit
+                    Case vbIgnore, vbOK
+                        Exit Do
+                End Select
+            Loop While True
+        Next
     End If
+
+    SearchDirectory = vbOK
 End Function
 
 Function ShowMessageAndQuit()
