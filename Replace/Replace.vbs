@@ -10,16 +10,19 @@ Dim Arguments
 Dim PathNeeded
 Dim Path
 Dim Recursive
+Dim UseRegExp
 Dim Description
 Dim ScriptName
 Dim After
 Dim FileSystem
 Dim Count
+Dim RegExp
 
 BeforeNeeded = True
 Before = ""
 Set Arguments = WScript.Arguments
 Recursive = False
+UseRegExp = False
 
 If Arguments.Count < 1 Then
     PathNeeded = True
@@ -27,16 +30,30 @@ Else
     Path = Arguments(0)
     PathNeeded = False
 
+    Dim Index
+
     If Arguments.Count > 1 Then
-        Select Case Arguments(1)
-            Case "/r", "/R"
-                Recursive = True
-        End Select
+        For Index = 1 To Arguments.Count - 1
+
+            Select Case Arguments(Index)
+                Case "/r", "/R"
+                    Recursive = True
+                Case "/re", "/RE"
+                    UseRegExp = True
+            End Select
+        Next
     End If
 End If
 
 Set FileSystem = CreateObject("Scripting.FileSystemObject")
 ScriptName = "一括名前変更"
+
+If UseRegExp Then
+    ScriptName = ScriptName & " (正規表現)"
+    Set RegExp = CreateObject("VBScript.RegExp")
+    RegExp.Global = True
+    RegExp.IgnoreCase = True
+End If
 
 If Recursive Then
     ScriptName = ScriptName & " (再帰的)"
@@ -50,6 +67,19 @@ Do While BeforeNeeded
         Quit
     ElseIf Before = "" Then
         MsgBox "置換前の文字列が入力されていません。", vbCritical Or vbOkOnly, ScriptName
+    ElseIf UseRegExp Then
+        RegExp.Pattern = Before
+        On Error Resume Next
+        Err.Clear
+        RegExp.Test ""
+
+        If Err.Number = 0 Then
+            BeforeNeeded = False
+        Else
+            MsgBox "正規表現が正しくありません。" & vbCrLf & vcCrLf & Before, vbCritical Or vbOkOnly, ScriptName
+        End If
+
+        On Error GoTo 0
     Else
         BeforeNeeded = False
     End If
@@ -89,6 +119,7 @@ ShowMessageAndQuit
 
 Function Quit()
     Set FileSystem = Nothing
+    Set RegExp = Nothing
     WScript.Quit
 End Function
 
@@ -135,11 +166,28 @@ Function SearchDirectory(ByVal folderspec)
             Dim BeforeFileName
             ' MAX_PATH 制限によるエラーはここでは発生しない
             BeforeFileName = File.Name
-
             Dim AfterFileName
-            AfterFileName = Replace(BeforeFileName, Before, After)
+            Dim Continue
+            Continue = False
 
-            If AfterFileName <> BeforeFileName Then
+            If UseRegExp Then
+                Err.Clear
+                AfterFileName = RegExp.Replace(BeforeFileName, After)
+                ErrNumber = Err.Number
+                ErrDescription = Err.Description
+
+                If ErrNumber <> 0 Then
+                    If MsgBox(ErrDescription & vbCrLf & vbCrLf & File.Path, vbOKCancel Or vbCritical, ScriptName) = vbCancel Then
+                        ShowMessageAndQuit
+                    End If
+
+                    Continue = True
+                End If
+            Else
+                AfterFileName = Replace(BeforeFileName, Before, After)
+            End If
+
+            If Not Continue AND AfterFileName <> BeforeFileName Then
                 Do
                     Err.Clear
                     File.Name = AfterFileName
