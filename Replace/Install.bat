@@ -6,9 +6,9 @@
 @SET REG_DIRECTORY_BACKGROUND_SHELL=HKCU\Software\Classes\Directory\Background\shell
 @SET COMMANDNAME=一括置換
 @SET COMMANDNAME_R=一括置換 (再帰的)
-@CALL :AddShellCommand %REG_DIRECTORY_SHELL%\Replace "%COMMANDNAME%" "\"%%%%1\" 1"
+@CALL :AddShellCommand %REG_DIRECTORY_SHELL%\Replace "%COMMANDNAME%" "\"%%%%1\""
 @CALL :AddShellCommand %REG_DIRECTORY_SHELL%\ReplaceRecursive "%COMMANDNAME_R%" "\"%%%%1\" /R"
-@CALL :AddShellCommand %REG_DIRECTORY_BACKGROUND_SHELL%\Replace "%COMMANDNAME%" "\"%%%%V\" 1"
+@CALL :AddShellCommand %REG_DIRECTORY_BACKGROUND_SHELL%\Replace "%COMMANDNAME%" "\"%%%%V\""
 @CALL :AddShellCommand %REG_DIRECTORY_BACKGROUND_SHELL%\ReplaceRecursive "%COMMANDNAME_R%" "\"%%%%V\" /R"
 @PAUSE
 @EXIT /B
