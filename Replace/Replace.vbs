@@ -99,11 +99,11 @@ Function SearchDirectory(ByVal folderspec)
 
     Do
         On Error Resume Next
+        Err.Clear
         Set Folder = FileSystem.GetFolder(folderspec)
         ErrNumber = Err.Number
         ErrDescription = Err.Description
         On Error GoTo 0
-        Err.Clear
 
         If ErrNumber = 0 Then
             Exit Do
@@ -118,12 +118,12 @@ Function SearchDirectory(ByVal folderspec)
     Set Files = Folder.Files
     Dim FileCount
     On Error Resume Next
+    Err.Clear
     ' ファイルにアクセスできるかチェックする
     ' (ディレクトリに読み取り権限がない場合、ここでエラーになる)
     FileCount = Files.Count
     ErrNumber = Err.Number
     ErrDescription = Err.Description
-    Err.Clear
 
     If ErrNumber <> 0 Then
         SearchDirectory = MsgBox(ErrDescription & vbCrLf & vbCrLf & Folder.Path, vbAbortRetryIgnore Or vbCritical, ScriptName)
@@ -141,10 +141,10 @@ Function SearchDirectory(ByVal folderspec)
 
             If AfterFileName <> BeforeFileName Then
                 Do
+                    Err.Clear
                     File.Name = AfterFileName
                     ErrNumber = Err.Number
                     ErrDescription = Err.Description
-                    Err.Clear
 
                     If ErrNumber = 0 Then
                         Count = Count + 1
