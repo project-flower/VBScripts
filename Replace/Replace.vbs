@@ -38,6 +38,10 @@ End If
 Set FileSystem = CreateObject("Scripting.FileSystemObject")
 ScriptName = "一括名前変更"
 
+If Recursive Then
+    ScriptName = ScriptName & " (再帰的)"
+End If
+
 Do While BeforeNeeded
     Before = InputBox("置換前の文字列を入力してください。", ScriptName, Before)
 
