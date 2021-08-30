@@ -16,5 +16,5 @@
 :AddShellCommand
 @REG ADD %~1 /t REG_SZ /ve /d "%~2" /f
 @REG ADD %~1 /t REG_SZ /v Icon /d WScript.exe /f
-@REG ADD %~1\command /t REG_EXPAND_SZ /ve /d "WScript \"%~dp0Replace.vbs\" %~3" /f
+@REG ADD %~1\command /t REG_SZ /ve /d "WScript \"%~dp0Replace.vbs\" %~3" /f
 @EXIT /B
