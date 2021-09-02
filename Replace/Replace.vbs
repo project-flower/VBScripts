@@ -1,5 +1,5 @@
 ' Replace.vbs
-' Copyright (C) Project Flower 2020
+' Copyright (C) Project Flower 2020-2021
 
 Option Explicit
 
@@ -141,6 +141,9 @@ Function SearchDirectory(ByVal folderspec, ByVal Recursive)
             Dim AfterFileName
 
             Do
+                ' VBScript Ç≈ On Error GoTo ÇégópÇ∑ÇÈÇ±Ç∆ÇÕÇ≈Ç´Ç‹ÇπÇÒÅB
+                ' https://docs.microsoft.com/ja-jp/office/client-developer/access/desktop-database-reference/handling-errors-in-vbscript
+                On Error Resume Next
                 BeforeFileName = File.Name
 
                 If Err.Number = 0 Then
