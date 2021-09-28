@@ -8,7 +8,7 @@
 @SET COMMANDNAME=DateTimeDirectory
 @CALL :AddShellCommand %REG_DIRECTORY_SHELL%\DateTimeDirectory "%COMMANDNAME%" "\"%%%%1\""
 @CALL :AddShellCommand %REG_DIRECTORY_BACKGROUND_SHELL%\DateTimeDirectory "%COMMANDNAME%" "\"%%%%V\""
-@CALL :AddShellCommand %REG_DRIVE_SHELL%\DateTimeDirectory "%COMMANDNAME%" "%%%%1\"
+@CALL :AddShellCommand %REG_DRIVE_SHELL%\DateTimeDirectory "%COMMANDNAME%" \"%%%%1\"
 @PAUSE
 @EXIT /B
 
