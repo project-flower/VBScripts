@@ -2,13 +2,13 @@
 @ECHO エクスプローラーのコンテキスト メニューに"DateTimeDirectory"を追加します。
 @PAUSE
 @CD /D %~dp0
-@SET REG_DIRECTORY_SHELL=HKCU\Software\Classes\Directory\shell
+@SET REG_FOLDER_SHELL=HKCU\Software\Classes\Folder\shell
 @SET REG_DIRECTORY_BACKGROUND_SHELL=HKCU\Software\Classes\Directory\Background\shell
-@SET REG_DRIVE_SHELL=HKCU\Software\Classes\Drive\shell
+@SET REG_LIBRARYFOLDER_BACKGROUND_SHELL=HKCU\Software\Classes\LibraryFolder\Background\shell
 @SET COMMANDNAME=DateTimeDirectory
-@CALL :AddShellCommand %REG_DIRECTORY_SHELL%\DateTimeDirectory "%COMMANDNAME%" "\"%%%%1\""
+@CALL :AddShellCommand %REG_FOLDER_SHELL%\DateTimeDirectory "%COMMANDNAME%" "\"%%%%1\""
 @CALL :AddShellCommand %REG_DIRECTORY_BACKGROUND_SHELL%\DateTimeDirectory "%COMMANDNAME%" "\"%%%%V\""
-@CALL :AddShellCommand %REG_DRIVE_SHELL%\DateTimeDirectory "%COMMANDNAME%" \"%%%%1\"
+@CALL :AddShellCommand %REG_LIBRARYFOLDER_BACKGROUND_SHELL%\DateTimeDirectory "%COMMANDNAME%" "\"%%%%V\""
 @PAUSE
 @EXIT /B
 
